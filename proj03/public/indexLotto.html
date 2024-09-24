@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로또 번호 추출기</title>
+    <style>
+        body {
+            background-color: #f0f8ff;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        button {
+            margin: 20px;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            border: none;
+            background-color: #f44336;
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            /* background-color: #45a049; */
+            transform: scale(1.1);
+        }
+
+        /* button#stop {
+            background-color: #f44336;
+        } */
+
+        /* button#stop:hover {
+            background-color: #e53935;
+        } */
+
+        table {
+            margin-top: 20px;
+            border-radius: 10px;
+            background-color: #e0e0e0;
+            display: none;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #table td {
+            width: 100px;
+            height: 100px;
+            font-size: 50px;
+            text-align: center;
+            border-radius: 50%;
+            background-color: #d3d3d3;
+            transition: background-color 0.5s, transform 0.3s;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #table td.black {
+            background-color: black;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 40px;
+            color: #333;
+            font-weight: bold;
+            transition: font-size 0.3s ease, color 0.3s ease;
+        }
+
+        td:hover {
+            cursor: pointer;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="result"></div>
+    <div id="machine">
+        <table id="table"></table>
+    </div>
+    <div>
+        <button id="start">STOP</button>
+        <!-- <button id="stop">STOP</button> -->
+    </div>
+
+    <script>
+        const start = document.querySelector("#start");
+        // const stop = document.querySelector("#stop");
+        const table = document.querySelector("#table");
+        const result = document.querySelector("#result");
+        let roll;
+
+        // 중복 없는 번호 생성 함수
+        const makeNumbers = () => {
+            const numArray = [];
+            while (numArray.length < 6) {
+                const newNumber = Math.floor(Math.random() * 45 + 1);
+                if (!numArray.includes(newNumber)) {
+                    numArray.push(newNumber);
+                }
+            }
+            return numArray.sort((a, b) => a - b); // 생성된 번호를 정렬하여 반환
+        };
+
+        // 테이블 초기화 및 셀 생성
+        const initializeTable = () => {
+            table.innerHTML = "";
+            const newRow = table.insertRow();
+            for (let i = 0; i < 6; i++) {
+                const newCell = newRow.insertCell();
+                newCell.className = "values";
+                // newCell.textContent = "0";
+            }
+            table.style.display = "table";
+        };
+
+        // 번호 롤링 시작
+        const startRolling = () => {
+            const values = document.querySelectorAll(".values");
+            result.innerHTML = "행운의 번호는...";
+            roll = setInterval(() => {
+                values.forEach((value) => {
+                    value.innerHTML = Math.floor(Math.random() * 45 + 1);
+                    value.style.color = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`;
+                });
+            }, 100);
+        };
+
+        // 번호 롤링 중지 및 최종 번호 설정
+        const stopRolling = () => {
+            clearInterval(roll);
+            const numbers = makeNumbers();
+            const values = document.querySelectorAll(".values");
+
+            values.forEach((value, i) => {
+                setTimeout(() => {
+                    value.innerHTML = numbers[i];
+                    value.classList.add("black");
+                }, i * 50); // 번호 하나씩 딜레이 추가
+            });
+
+            setTimeout(() => {
+                result.innerHTML = "번호 생성 완료!";
+                result.style.color = "#4caf50";
+            }, values.length * 50);
+        };
+
+        let toggle = true;
+        initializeTable();
+        startRolling();
+        // stopRolling();
+        // START 버튼 클릭
+        start.addEventListener("click", () => {
+            if (toggle === false) {
+                start.style = "background-color: #f44336;"
+                start.textContent = "STOP"
+                initializeTable();
+                startRolling();
+                toggle = true;
+            } else {
+                start.textContent = "REROLL"
+                start.style = "background-color: #4caf50;"
+                stopRolling();
+                toggle = false;
+            }
+        });
+
+        // // STOP 버튼 클릭
+        // stop.addEventListener("click", () => {
+        //     stopRolling();
+        // });
+    </script>
+</body>
+
+</html>

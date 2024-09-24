@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body,
+        div,
+        table {
+            text-align: center;
+            margin: auto;
+            font-family: D2Coding;
+        }
+
+        table {
+            margin-top: 20px;
+            border-radius: 10px;
+            /* border: solid 1px; */
+            background-color: darkgray;
+            display: none;
+        }
+
+        button {
+            margin-top: 20px;
+        }
+
+        #table,
+        td {
+            padding: 5px;
+            border: solid 1px rgba(128, 128, 128, 0.486);
+            text-align: center;
+            transition: 0.1s;
+            /* border-right: gray 3px;
+            border-bottom: gray 3px; */
+        }
+
+        td {
+            border-radius: 20px;
+            background-color: lightgray;
+        }
+
+        .values {
+            font-size: 50pt;
+            width: 100px;
+            height: 100px;
+        }
+
+        #result {
+            margin-top: 10px;
+            font-size: 50px;
+        }
+
+        button:hover {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <select name="setRow" id="setRow">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+        <button id="start">START</button>
+        <button id="stop">STOP</button>
+    </div>
+    <div id="machine">
+        <table id="table">
+        </table>
+    </div>
+    <div id="result">
+
+    </div>
+    <script>
+        const start = document.querySelector("#start");
+        const stop = document.querySelector("#stop");
+
+        start.addEventListener("click", () => {
+            const table = document.querySelector("#table")
+            const setRow = document.querySelector("#setRow")
+            table.innerHTML = "";
+            let newRow = table.insertRow();
+            for (let i = 0; i < setRow.value; i++) {
+                let newCell = newRow.insertCell();
+                newCell.className = "values";
+                newCell.textContent = "0";
+            }
+            table.style.display = "table";
+            const values = document.querySelectorAll(".values");
+            const result = document.querySelector("#result")
+            result.innerHTML = "rolling...";
+            const roll = setInterval(() => {
+                values.forEach(value => {
+                    value.innerHTML = parseInt(Math.random() * 9);
+                    value.style = `color:rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
+                });
+            }, 100)
+            stop.addEventListener("click", () => {
+                clearInterval(roll);
+                result.innerHTML = "";
+                values.forEach((value, i) => {
+                    setTimeout(() => {
+                        value.style.backgroundColor = "black";
+                        value.style.border = "1px solid lightgray";
+                    }, i * 300);
+                });
+                for (let i = 0; i < values.length; i++) {
+                    setTimeout(() => {
+                        result.innerHTML = "stopped!"
+                        result.style.fontSize = "50px";
+                    }, i * 50);
+                }
+            })
+        })
+
+
+    </script>
+</body>
+
+</html>

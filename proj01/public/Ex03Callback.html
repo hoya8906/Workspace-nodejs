@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            font-family: D2Coding;
+        }
+
+        #box {
+            margin-top: 5px;
+            border: 1px solid gray;
+            border-radius: 10px;
+            text-align: center;
+            line-height: 150px;
+            background-color: lightgray;
+            width: 150px;
+            height: 150px;
+            left: 0px;
+            top: 0px;
+            position: relative;
+            transition: 0.5s;
+            border: 1px solid rgba(128, 128, 128, 0.5);
+            border-right: 3px solid rgba(128, 128, 128, 0.5);
+            border-bottom: 3px solid rgba(128, 128, 128, 0.5);
+
+        }
+
+        #box:hover {
+            cursor: pointer;
+        }
+
+        #moveBtn {
+            border-radius: 5px;
+            border: 1px solid rgba(128, 128, 128, 0.5);
+            border-right: 3px solid rgba(128, 128, 128, 0.5);
+            border-bottom: 3px solid rgba(128, 128, 128, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Hello World!!!</h1>
+    <input type="text" id="speed" value="" />
+    <!-- <button id="moveBtn">Go!</button> -->
+    <div id="box">
+        BOX
+    </div>
+    <script>
+        const speed = document.querySelector("#speed");
+        const box = document.querySelector("#box");
+    
+        // 초기 스타일 설정
+        box.style.left = "0px";
+        box.style.top = "0px";
+        box.style.backgroundColor = "lightgray";
+        box.style.width = "150px";
+        box.style.height = box.style.width;
+        box.style.lineHeight = box.style.height;
+    
+        let toggle = false;  // 초기 상태는 멈춘 상태
+        let setMove = null;  // 전역 변수로 선언하여 setInterval ID를 저장
+    
+        // 박스 클릭 시 움직임 제어
+        box.addEventListener("click", () => {
+            if (toggle) {
+                // 이미 움직이고 있다면 멈춤
+                clearInterval(setMove);
+                toggle = false;
+            } else {
+                // 멈춘 상태라면 움직임 시작
+                toggle = true;
+                move();
+            }
+        });
+    
+        // 움직임 함수
+        const move = () => {
+            let changeSpeed = Number(speed.value) || 500;  // 속도가 없으면 기본값 500ms 사용
+            setMove = setInterval(() => {
+                // 무작위 위치와 크기 설정
+                box.style.left = Math.random() * 100 + 100 + "px";
+                box.style.top = Math.random() * 100 + 100 + "px";
+                box.style.width = Math.random() * 100 + 50 + "px";
+                box.style.height = box.style.width;
+                box.style.lineHeight = box.style.height;
+                // 무작위 배경색 설정
+                box.style.backgroundColor = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`;
+            }, changeSpeed);  // 설정된 속도로 반복 실행
+        };
+    </script>
+    
+    
+</body>
+
+</html>
