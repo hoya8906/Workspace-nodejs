@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        // 함수형 컴포넌트로 선언
+        const Hello = () =>
+        // 변수, state, 함수 등을 선언하는 부분
+        (<div>
+            <h1>Hello World!!!</h1>
+            <p><button onClick=
+                {() => {
+                    console.log("클릭했다.")
+                }}
+            >확인</button></p>
+            <h3>안녕하세요, React</h3>
+        </div>);
+
+        const Button = () => {
+            <p><button>확인</button></p>
+        }
+
+        // const container = document.querySelector("#root");
+        // const root = ReactDOM.createRoot(container);
+        const root = ReactDOM.createRoot(document.querySelector("#root"));
+        root.render(<Hello />);
+    </script>
+</body>
+
+</html>
