@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h2>Used Car List</h2>
+    <div>
+        <ul>
+            <li>차종<input type="text" class="carInputs" value="붕붕이"></li>
+            <li>가격<input type="text" class="carInputs" value="2700"></li>
+            <li>회사<input type="text" class="carInputs" value="붕슬라"></li>
+            <li>연식<input type="text" class="carInputs" value="2050"></li>
+        </ul>
+        <button id="addBtn">저장</button>
+        <p>추억이 담긴 자동차로 새로운 가치를 만듭니다.</p>
+        <p><input type="text" id="searchInput" /><button id="searchBtn">검색</button></p>
+        <table id="root">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Company</th>
+                    <th>Year</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="tbody">
+
+            </tbody>
+        </table>
+    </div>
+    <script>
+        const makeTr = (list) => {
+            const tBody = document.querySelector("#tbody");
+            let html = list.map((e) => {
+                return `
+            <tr>
+                <td>${e.id}</td>
+                <td>${e.name}</td>
+                <td>${e.price}</td>
+                <td>${e.company}</td>
+                <td>${e.year}</td>
+                <td><button data-id="${e.id}" class="delBtn">삭제</button></td>
+            </tr>
+        `;
+            }).join("");
+
+            tBody.innerHTML = html;
+
+            const delButtons = document.querySelectorAll(".delBtn");
+            delButtons.forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                    let delNo = Number(e.target.dataset.id);  // ID 값 확인
+                    console.log("삭제할 ID: ", delNo);
+
+                    const xhr = new XMLHttpRequest();
+                    const url = "http://localhost:3000/products/" + delNo;
+                    console.log("DELETE 요청 URL: ", url);  // 요청 URL 확인
+
+                    // DELETE 요청 보내기
+                    xhr.open("DELETE", url, true);
+                    xhr.onreadystatechange = () => {
+                        if (xhr.readyState === 4 && xhr.status === 200) {
+                            console.log("삭제 성공");
+
+                            // 삭제 후 새로운 목록을 다시 가져와서 테이블 갱신
+                            const carList = JSON.parse(xhr.responseText.trim());
+                            makeTr(carList);
+                        } else if (xhr.readyState === 4 && xhr.status !== 200) {
+                            console.error("삭제 실패: ", xhr.status, xhr.statusText);
+                        }
+                    };
+                    xhr.send();
+                });
+            });
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const xhr = new XMLHttpRequest();
+            const url = "http://localhost:3000/products";
+
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const carList = JSON.parse(xhr.responseText.trim());
+                    makeTr(carList);
+                }
+            };
+
+            xhr.open("GET", url);
+            xhr.send();
+        });
+
+        // 검색 이벤트
+        document.querySelector("#searchBtn").addEventListener("click", () => {
+            const searchInput = document.querySelector("#searchInput");
+            const searchKey = searchInput.value.trim().toLowerCase();
+
+            const xhr = new XMLHttpRequest();
+            const url = "http://localhost:3000/products";
+
+            xhr.open("GET", url);
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const carList = JSON.parse(xhr.responseText.trim());
+
+                    // 검색어에 맞는 항목 필터링
+                    const filteredCars = carList.filter(car => car.name.toLowerCase().includes(searchKey));
+
+                    // 필터된 항목만 표시
+                    makeTr(filteredCars);
+                }
+            };
+            xhr.send();
+        });
+
+        // 새로운 차량 등록
+        const addBtn = document.querySelector("#addBtn");
+        addBtn.addEventListener("click", () => {
+            const carInputs = document.querySelectorAll(".carInputs");
+            const data = {
+                name: carInputs[0].value,
+                price: carInputs[1].value,
+                company: carInputs[2].value,
+                year: carInputs[3].value,
+            };
+
+            const xhr = new XMLHttpRequest();
+            const url = "http://localhost:3000/products";
+
+            // POST 요청
+            xhr.open("POST", url);
+            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const carList = JSON.parse(xhr.responseText.trim());
+                    makeTr(carList);
+                }
+            };
+            xhr.send(JSON.stringify(data));
+        });
+    </script>
+</body>
+
+</html>
