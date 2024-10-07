@@ -56,7 +56,7 @@ const CarList = ({ data, editMode, editingItem, setEditingItem, handleEdit, hand
                             )}
                         </td>
                         <td>
-                            <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+                            <div className="btn-group" role="group" aria-label="Basic mixed styles example">
                                 {editMode === item.id ? (
                                     <button className="btn btn-sm btn-primary" onClick={() => handleUpdate(item.id)}>저장</button>
                                 ) : (

@@ -9,8 +9,11 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-const productList = [];
-let cnt = 1;
+const productList = [
+    { id: 1, name: "X5", price: 5500, company: "BMW", year: 2022 },
+    { id: 2, name: "A6", price: 3400, company: "AUDI", year: 2020 },
+];
+let cnt = productList.length;
 
 router.get("/", (req, res) => {
     console.log("GET: Product List");

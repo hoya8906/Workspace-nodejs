@@ -3,7 +3,7 @@ import React from 'react';
 const CarForm = ({ inputValues, setInputValues, handleSubmit }) => {
     return (
         <div className="row mb-4">
-            <div class="input-group input-group-sm">
+            <div className="input-group input-group-sm">
                 <input className="form-control" type="text" placeholder="차종"
                     onChange={e => setInputValues({ ...inputValues, name: e.target.value.trim() })} />
 
