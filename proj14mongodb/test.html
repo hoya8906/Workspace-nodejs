@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Rectangle Game</title>
+    <style>
+        body, html {
+            margin: 0;
+            height: 100%;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+
+        .cursor-box, .game-over {
+            display: none; /* 초기에는 숨김 */
+        }
+
+        .cursor-box {
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            position: absolute;
+            pointer-events: none; /* 커서에 영향을 주지 않도록 설정 */
+            transition: transform 0.05s linear;
+        }
+
+        .random-box {
+            position: absolute;
+            border: 2px solid black;
+            transition: background 1s linear;
+        }
+
+        .start-button, .retry-button {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .start-button:hover, .retry-button:hover {
+            background-color: #218838;
+        }
+
+        .game-over, .score-display, .time-display {
+            position: absolute;
+            font-size: 24px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .game-over {
+            display: none;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .score-display {
+            top: 10px;
+            left: 10px;
+        }
+
+        .time-display {
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="start-button">Start Game</div>
+    <div class="game-over">Game Over! <br> Your Score: <span id="final-score"></span><br><button class="retry-button">Retry</button></div>
+    <div class="cursor-box" id="cursorBox"></div>
+    <div class="score-display">Score: <span id="score">0</span></div>
+    <div class="time-display">Time: <span id="timer">60</span>s</div>
+
+    <script>
+        const cursorBox = document.getElementById('cursorBox');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const startButton = document.querySelector('.start-button');
+        const gameOverScreen = document.querySelector('.game-over');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const retryButton = document.querySelector('.retry-button');
+        let score = 0;
+        let gameTime = 60;
+        let gameInterval;
+        let decreaseIntervals = new Map();
+        let isGameRunning = false;
+        let randomBoxes = [];
+
+        // 임의의 색상 생성 함수
+        const getRandomColor = () => {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        };
+
+        // 무작위 이동 애니메이션 생성 함수
+        const createRandomMovementAnimation = () => {
+            const animationName = `move-${Math.random().toString(36).substr(2, 9)}`;
+            const duration = Math.random() * 5 + 3;
+            const deltaX = (Math.random() - 0.5) * 200;
+            const deltaY = (Math.random() - 0.5) * 200;
+
+            const styleSheet = document.styleSheets[0];
+            styleSheet.insertRule(`
+                @keyframes ${animationName} {
+                    0% { transform: translate(0, 0); }
+                    25% { transform: translate(${deltaX}px, ${-deltaY}px); }
+                    50% { transform: translate(${-deltaX}px, ${deltaY}px); }
+                    75% { transform: translate(${deltaY}px, ${-deltaX}px); }
+                    100% { transform: translate(0, 0); }
+                }
+            `, styleSheet.cssRules.length);
+
+            return `${animationName} ${duration}s infinite alternate ease-in-out`;
+        };
+
+        // 임의의 사각형 생성
+        const createRandomBox = () => {
+            const boxSize = Math.floor(Math.random() * 100) + 50;
+            const x = Math.random() * (window.innerWidth - boxSize);
+            const y = Math.random() * (window.innerHeight - boxSize);
+            const box = document.createElement('div');
+            box.className = 'random-box';
+            box.style.left = `${x}px`;
+            box.style.top = `${y}px`;
+            box.style.width = `${boxSize}px`;
+            box.style.height = `${boxSize}px`;
+            const color = getRandomColor();
+            box.style.background = `linear-gradient(to right, ${color} 100%, transparent 0%)`;
+            box.style.animation = createRandomMovementAnimation();
+
+            document.body.appendChild(box);
+
+            return { box, maxHP: boxSize, currentHP: boxSize, color, size: boxSize };
+        };
+
+        // 사각형의 HP 감소 함수
+        const decreaseHP = (boxData) => {
+            if (boxData.currentHP > 0) {
+                boxData.currentHP -= 5; // HP 감소량 조정
+                const hpPercentage = (boxData.currentHP / boxData.maxHP) * 100;
+                boxData.box.style.background = `linear-gradient(to right, ${boxData.color} ${hpPercentage}%, transparent ${hpPercentage}%)`;
+            } else {
+                score += Math.round(boxData.size / 10); // 크기에 따라 점수 증가
+                scoreDisplay.textContent = score;
+                boxData.box.remove();
+                randomBoxes = randomBoxes.filter(b => b !== boxData);
+                randomBoxes.push(createRandomBox());
+                stopHPDecrease(boxData);
+            }
+        };
+
+        // 충돌 감지 및 HP 감소 시작 함수
+        const startHPDecrease = (boxData) => {
+            if (!decreaseIntervals.has(boxData)) {
+                const intervalId = setInterval(() => decreaseHP(boxData), 500); // HP 감소 주기 설정
+                decreaseIntervals.set(boxData, intervalId);
+            }
+        };
+
+        // 충돌 감지 및 HP 감소 중지 함수
+        const stopHPDecrease = (boxData) => {
+            if (decreaseIntervals.has(boxData)) {
+                clearInterval(decreaseIntervals.get(boxData));
+                decreaseIntervals.delete(boxData);
+            }
+        };
+
+        // 겹침 감지 함수
+        const detectOverlap = () => {
+            randomBoxes.forEach(boxData => stopHPDecrease(boxData)); // 모든 사각형의 HP 감소를 일단 중지
+
+            for (let i = 0; i < randomBoxes.length; i++) {
+                for (let j = i + 1; j < randomBoxes.length; j++) {
+                    const boxA = randomBoxes[i].box.getBoundingClientRect();
+                    const boxB = randomBoxes[j].box.getBoundingClientRect();
+                    if (boxA.left < boxB.right && boxA.right > boxB.left && boxA.top < boxB.bottom && boxA.bottom > boxB.top) {
+                        startHPDecrease(randomBoxes[i]);
+                        startHPDecrease(randomBoxes[j]);
+                    }
+                }
+            }
+        };
+
+        // 게임 초기화 함수
+        const initializeGame = () => {
+            score = 0;
+            gameTime = 60;
+            isGameRunning = true;
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = gameTime;
+            randomBoxes = Array.from({ length: 20 }, () => createRandomBox());
+            gameInterval = setInterval(updateTimer, 1000);
+            setInterval(detectOverlap, 100); // 겹침 감지 주기 설정
+        };
+
+        // 타이머 업데이트 함수
+        const updateTimer = () => {
+            if (gameTime > 0) {
+                gameTime--;
+                timerDisplay.textContent = gameTime;
+            } else {
+                endGame();
+            }
+        };
+
+        // 게임 종료 함수
+        const endGame = () => {
+            isGameRunning = false;
+            clearInterval(gameInterval);
+            randomBoxes.forEach(boxData => boxData.box.remove());
+        };
+
+        // 게임 시작 버튼 클릭 이벤트
+        startButton.addEventListener('click', () => {
+            startButton.style.display = 'none';
+            initializeGame();
+        });
+
+        // 다시 하기 버튼 클릭 이벤트
+        retryButton.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            startButton.style.display = 'block';
+        });
+    </script>
+</body>
+</html>
